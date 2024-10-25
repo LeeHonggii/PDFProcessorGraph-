@@ -1,0 +1,222 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: white;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.container {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.tools-section {
+    flex: 1;
+    min-width: 300px;
+}
+
+.result-section {
+    flex: 2;
+}
+
+.tool-card, .result-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.upload-area {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    border: 2px dashed #dee2e6;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.upload-area input[type="file"] {
+    margin-bottom: 1rem;
+}
+
+button {
+    padding: 0.8rem 1.5rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+#fileName {
+    color: #666;
+    margin: 0.5rem 0;
+    word-break: break-all;
+}
+
+#uploadStatus {
+    margin-top: 1rem;
+    color: #666;
+    text-align: center;
+}
+
+#loadingIndicator {
+    margin: 1rem 0;
+    color: #666;
+    text-align: center;
+}
+
+.analysis-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.analysis-btn {
+    width: 100%;
+}
+
+.wordcloud-result {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.debug-info {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.debug-info h4 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.debug-info p {
+    color: #666;
+}
+
+.wordcloud-image {
+    text-align: center;
+}
+
+.wordcloud-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .tools-section,
+    .result-section {
+        width: 100%;
+    }
+}
+
+.frequency-options {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.option {
+    margin: 0.5rem 0;
+}
+
+.custom-input {
+    margin-top: 0.5rem;
+}
+
+.custom-input input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.apply-btn {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.frequency-result {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.frequency-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.frequency-table {
+    overflow-x: auto;
+}
+
+.frequency-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.frequency-table th,
+.frequency-table td {
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    text-align: left;
+}
+
+.frequency-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+#resultsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}

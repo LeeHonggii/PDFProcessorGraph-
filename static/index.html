@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF 분석 시스템</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <h1>PDF 분석 시스템</h1>
+    </header>
+
+    <div class="container">
+        <div class="tools-section">
+            <!-- PDF 업로드 카드 -->
+            <div class="tool-card">
+                <h2>PDF 업로드</h2>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="pdfInput" accept=".pdf" />
+                    <p id="fileName"></p>
+                    <button id="uploadButton" disabled>업로드</button>
+                </div>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <!-- 분석 도구 선택 카드 -->
+            <div class="tool-card" id="analysisTools" style="display: none;">
+                <h2>분석 도구</h2>
+                <div class="analysis-options">
+                    <button onclick="analyzeFile('wordcloud')" class="analysis-btn">
+                        워드 클라우드 생성
+                    </button>
+                    <div class="frequency-analysis">
+                        <button onclick="showFrequencyOptions()" class="analysis-btn">
+                            단어 빈도 분석
+                        </button>
+                        <div id="frequencyOptions" class="frequency-options" style="display: none;">
+                            <div class="option">
+                                <input type="radio" name="stopword" id="noStopwords" value="none">
+                                <label for="noStopwords">불용어 제거 없음</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" name="stopword" id="defaultStopwords" value="default">
+                                <label for="defaultStopwords">기본 불용어 제거</label>
+                            </div>
+                            <div class="option">
+                                <input type="radio" name="stopword" id="customStopwords" value="custom">
+                                <label for="customStopwords">사용자 정의 불용어</label>
+                            </div>
+                            <div id="customStopwordsInput" class="custom-input" style="display: none;">
+                                <input type="text" id="stopwordsList" 
+                                       placeholder="불용어를 쉼표로 구분하여 입력 (예: 단어1, 단어2)">
+                            </div>
+                            <button onclick="analyzeFrequency()" class="apply-btn">적용</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="loadingIndicator" style="display: none;">
+                    분석 중...
+                </div>
+            </div>
+        </div>
+        
+        <!-- 결과 섹션 -->
+        <div class="result-section">
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentFileName = '';
+        let analysisResults = [];
+
+        document.getElementById('pdfInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('uploadButton').disabled = false;
+            }
+        });
+
+        document.getElementById('uploadButton').addEventListener('click', async function() {
+            const file = document.getElementById('pdfInput').files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('uploadStatus').textContent = '업로드 중...';
+            
+            try {
+                const response = await fetch('/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    currentFileName = data.filename;
+                    document.getElementById('uploadStatus').textContent = '업로드 완료';
+                    document.getElementById('analysisTools').style.display = 'block';
+                } else {
+                    document.getElementById('uploadStatus').textContent = '업로드 실패';
+                }
+            } catch (error) {
+                document.getElementById('uploadStatus').textContent = '업로드 중 오류 발생';
+                console.error('Error:', error);
+            }
+        });
+
+        function showFrequencyOptions() {
+            document.getElementById('frequencyOptions').style.display = 'block';
+        }
+
+        document.getElementById('customStopwords').addEventListener('change', function() {
+            document.getElementById('customStopwordsInput').style.display = 
+                this.checked ? 'block' : 'none';
+        });
+
+        async function analyzeFrequency() {
+            const stopwordOption = document.querySelector('input[name="stopword"]:checked').value;
+            const customStopwords = stopwordOption === 'custom' ? 
+                document.getElementById('stopwordsList').value : '';
+
+            await analyzeFile('frequency', stopwordOption, customStopwords);
+        }
+
+        async function analyzeFile(analysisType, stopwordOption = null, customStopwords = null) {
+            if (!currentFileName) return;
+
+            document.getElementById('loadingIndicator').style.display = 'block';
+            
+            try {
+                let url = `analyze/${currentFileName}?analysis_type=${analysisType}`;
+                if (stopwordOption) {
+                    url += `&stopword_option=${stopwordOption}`;
+                }
+                if (customStopwords) {
+                    url += `&custom_stopwords=${encodeURIComponent(customStopwords)}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                // 새로운 결과를 배열 앞에 추가
+                analysisResults.unshift(data);
+                
+                // 결과 표시 업데이트
+                updateResults();
+                
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        function updateResults() {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+
+            analysisResults.forEach((result, index) => {
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                
+                let content = '';
+                if (result.type === 'wordcloud') {
+                    content = `
+                        <h3>워드 클라우드</h3>
+                        <div class="wordcloud-result">
+                            <div class="debug-info">
+                                <p>추출된 단어 수: ${result.debug_info.total_words} 개</p>
+                            </div>
+                            <div class="wordcloud-image">
+                                <img src="data:image/png;base64,${result.image}" alt="Word Cloud">
+                            </div>
+                        </div>
+                    `;
+                } else if (result.type === 'frequency') {
+                    content = `
+                        <h3>단어 빈도 분석</h3>
+                        <div class="frequency-result">
+                            <div class="frequency-image">
+                                <img src="data:image/png;base64,${result.image}" alt="Frequency Plot">
+                            </div>
+                            <div class="frequency-table">
+                                <table>
+                                    <tr><th>단어</th><th>빈도</th></tr>
+                                    ${result.word_counts.map(([word, count]) => 
+                                        `<tr><td>${word}</td><td>${count}</td></tr>`
+                                    ).join('')}
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                resultCard.innerHTML = content;
+                container.appendChild(resultCard);
+            });
+        }
+    </script>
+</body>
+</html>
